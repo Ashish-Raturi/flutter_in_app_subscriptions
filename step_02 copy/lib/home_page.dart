@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pim/color.dart';
+import 'package:pim/service/subscription_db_service.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({Key? key}) : super(key: key);
@@ -16,54 +17,73 @@ class _HomepageState extends State<Homepage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            elevation: 0,
-            backgroundColor: Colors.white,
-            title: Text('Hi, Ashish',
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    fontSize: 22,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold)),
-          ),
-          body: Stack(
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                child: Center(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [],
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        _buildMonthlySubTile(),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        _buildYearlySubTile(),
-                      ],
+    return StreamBuilder<UserData>(
+        stream: SubscriptionDbService().featchUserDataFromDb,
+        builder: (context, snapshot) {
+          if (snapshot.hasData == false) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: const [
+                    CircularProgressIndicator(),
+                    SizedBox(
+                      height: 20,
                     ),
-                  ),
+                    Text('Loading User Data, Please wait...')
+                  ],
                 ),
               ),
-            ],
-          )),
-    );
+            );
+          }
+
+          UserData userData = snapshot.data!;
+
+          return SafeArea(
+            child: Scaffold(
+                backgroundColor: Colors.white,
+                body: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 5),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Hi, ${userData.username}',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                        fontSize: 22,
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            _buildMonthlySubTile(),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            _buildYearlySubTile(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+          );
+        });
   }
 
   _buildMonthlySubTile() {
