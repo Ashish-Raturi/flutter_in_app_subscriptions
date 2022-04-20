@@ -39,8 +39,9 @@ class _HomepageState extends State<Homepage> {
   PurchaseDetails? _activeSubscriptionPurchasesDetails;
 
   ///-------Use this Fields---------///
-  List<String> _notFoundIds = <String>[];
+  PurchaseDetails? _activeSubscriptionPurchasesDetails;
   List<ProductDetails> _products = <ProductDetails>[];
+  List<String> _notFoundIds = <String>[];
   bool _isAvailable = false;
   String? _queryProductError;
   bool _purchasePending = false;

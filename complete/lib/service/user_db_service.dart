@@ -5,7 +5,7 @@ class SubscriptionDbService {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> saveSubcriptionsDetails(PurchaseDetails purchaseDetails) async {
-    _firestore.collection('User Data').doc('J2Bu7KDlku5sFbc6S9HR').set({
+    _firestore.collection('User Data').doc('vt1g6YbzBkxblkyrXfzT').set({
       'Purchase Details': {
         'error': purchaseDetails.error,
         'pendingCompletePurchase': purchaseDetails.pendingCompletePurchase,
@@ -26,7 +26,7 @@ class SubscriptionDbService {
   Stream<UserData> get featchUserDataFromDb {
     return _firestore
         .collection('User Data')
-        .doc('J2Bu7KDlku5sFbc6S9HR')
+        .doc('vt1g6YbzBkxblkyrXfzT')
         .snapshots()
         .map((event) => userDataFromSnapshot(event));
   }
