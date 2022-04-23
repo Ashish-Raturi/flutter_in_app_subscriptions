@@ -512,12 +512,6 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  void showPendingUI() {
-    setState(() {
-      _purchasePending = true;
-    });
-  }
-
   ProductDetails? findProductDetail(String id) {
     for (ProductDetails pd in _products) {
       if (pd.id == id) return pd;
@@ -549,6 +543,12 @@ class _HomepageState extends State<Homepage> {
     }
     //buying Subscription
     _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+  }
+
+  void showPendingUI() {
+    setState(() {
+      _purchasePending = true;
+    });
   }
 
   Future<void> verifyAndDeliverProduct(PurchaseDetails purchaseDetails) async {
