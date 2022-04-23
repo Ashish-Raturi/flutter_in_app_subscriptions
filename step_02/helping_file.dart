@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-//------------Copy 01------------//
 import 'dart:io';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
-//------------Copy 01 End------------//
+//------- copy 01 -------//
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+//------- copy 01 End-------//
 
 class SubscriptinPage extends StatefulWidget {
   const SubscriptinPage({Key? key}) : super(key: key);
@@ -13,7 +15,6 @@ class SubscriptinPage extends StatefulWidget {
   State<SubscriptinPage> createState() => _SubscriptinPageState();
 }
 
-//------------Copy 02------------//
 //Subscription 01
 String sub1Id =
     Platform.isAndroid ? 'your_android_sub1_id' : 'your_ios_sub1_id';
@@ -26,10 +27,8 @@ List<String> _subcriptionProductIds = <String>[
   sub1Id,
   sub2Id,
 ];
-//------------Copy 02 End------------//
 
 class _SubscriptinPageState extends State<SubscriptinPage> {
-  //------------Copy 03------------//
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   List<ProductDetails> _products = <ProductDetails>[];
   List<String> _notFoundIds = <String>[];
@@ -137,15 +136,97 @@ class _SubscriptinPageState extends State<SubscriptinPage> {
     }
     return null;
   }
-  //------------Copy 03 End------------//
 
   @override
   Widget build(BuildContext context) {
     return Container();
   }
-}
 
-//------------Copy 04------------//
+  //-------Copy 02-----------//
+
+  buySubscription(ProductDetails productDetails) {
+    late PurchaseParam purchaseParam;
+
+    if (Platform.isAndroid) {
+      //updated oldSubscription details for upgrading and downgrading subscription
+      GooglePlayPurchaseDetails? oldSubscription;
+
+      purchaseParam = GooglePlayPurchaseParam(
+          productDetails: productDetails,
+          applicationUserName: null,
+          changeSubscriptionParam: (oldSubscription != null)
+              ? ChangeSubscriptionParam(
+                  oldPurchaseDetails: oldSubscription,
+                  prorationMode: ProrationMode.immediateAndChargeProratedPrice,
+                )
+              : null);
+    } else {
+      purchaseParam = PurchaseParam(
+        productDetails: productDetails,
+        applicationUserName: null,
+      );
+    }
+    //buying Subscription
+    _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+  }
+
+  Widget _buildRestoreButton() {
+    if (_loading) {
+      return Container();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          TextButton(
+            child: const Text('Restore purchases'),
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              primary: Colors.white,
+            ),
+            onPressed: () => _inAppPurchase.restorePurchases(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> confirmPriceChange(
+      BuildContext context, String purchaseId) async {
+    if (Platform.isAndroid) {
+      final InAppPurchaseAndroidPlatformAddition androidAddition =
+          _inAppPurchase
+              .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
+      final BillingResultWrapper priceChangeConfirmationResult =
+          await androidAddition.launchPriceChangeConfirmationFlow(
+        sku: purchaseId,
+      );
+      if (priceChangeConfirmationResult.responseCode == BillingResponse.ok) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Price change accepted'),
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+            priceChangeConfirmationResult.debugMessage ??
+                'Price change failed with code ${priceChangeConfirmationResult.responseCode}',
+          ),
+        ));
+      }
+    }
+    if (Platform.isIOS) {
+      final InAppPurchaseStoreKitPlatformAddition iapStoreKitPlatformAddition =
+          _inAppPurchase
+              .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+      await iapStoreKitPlatformAddition.showPriceConsentIfNeeded();
+    }
+  }
+
+  //-------Copy 02 End-----------//
+}
 
 /// Example implementation of the
 /// [`SKPaymentQueueDelegate`](https://developer.apple.com/documentation/storekit/skpaymentqueuedelegate?language=objc).
@@ -164,4 +245,3 @@ class ExamplePaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
     return false;
   }
 }
-//------------Copy 04 End------------//
