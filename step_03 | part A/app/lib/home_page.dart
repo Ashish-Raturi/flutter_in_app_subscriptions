@@ -38,10 +38,24 @@ class _HomepageState extends State<Homepage> {
   String? _queryProductError;
   bool _loading = true;
 
+  late StreamSubscription<List<PurchaseDetails>> _subscription;
+  bool _purchasePending = false;
+
   late UserData userData;
 
   @override
   void initState() {
+    final Stream<List<PurchaseDetails>> purchaseUpdated =
+        _inAppPurchase.purchaseStream;
+    _subscription =
+        purchaseUpdated.listen((List<PurchaseDetails> purchaseDetailsList) {
+      _listenToPurchaseUpdated(purchaseDetailsList);
+    }, onDone: () {
+      _subscription.cancel();
+    }, onError: (Object error) {
+      // handle error here.
+    });
+
     initStoreInfo();
     super.initState();
   }
@@ -154,9 +168,9 @@ class _HomepageState extends State<Homepage> {
           }
 
           userData = snapshot.data!;
-          // if (userData.oldPdFromDb != null) {
-          //   activeSubId = userData.oldPdFromDb!.productID;
-          // }
+          if (userData.oldPdFromDb != null) {
+            activeSubId = userData.oldPdFromDb!.productID;
+          }
           return SafeArea(
             child: Scaffold(
                 backgroundColor: Colors.white,
@@ -227,25 +241,25 @@ class _HomepageState extends State<Homepage> {
                                 ),
                               ),
                             ),
-                          // if (_purchasePending)
-                          // Container(
-                          //   width: double.maxFinite,
-                          //   height: double.maxFinite,
-                          //   color: Colors.black87,
-                          //   child: Column(
-                          //     mainAxisAlignment: MainAxisAlignment.center,
-                          //     children: const [
-                          //       CircularProgressIndicator(),
-                          //       SizedBox(
-                          //         height: 10,
-                          //       ),
-                          //       Text(
-                          //         "Processing Purchase, Please wait...",
-                          //         style: TextStyle(color: Colors.white),
-                          //       )
-                          //     ],
-                          //   ),
-                          // )
+                          if (_purchasePending)
+                            Container(
+                              width: double.maxFinite,
+                              height: double.maxFinite,
+                              color: Colors.black87,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  CircularProgressIndicator(),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  Text(
+                                    "Processing Purchase, Please wait...",
+                                    style: TextStyle(color: Colors.white),
+                                  )
+                                ],
+                              ),
+                            )
                         ],
                       )),
           );
@@ -539,7 +553,7 @@ class _HomepageState extends State<Homepage> {
 
   void showPendingUI() {
     setState(() {
-      // _purchasePending = true;
+      _purchasePending = true;
     });
   }
 
@@ -550,13 +564,13 @@ class _HomepageState extends State<Homepage> {
     //update local variable
     setState(() {
       activeSubId = purchaseDetails.productID;
-      // _purchasePending = false;
+      _purchasePending = false;
     });
   }
 
   void handleError(IAPError error) {
     setState(() {
-      // _purchasePending = false;
+      _purchasePending = false;
     });
   }
 
