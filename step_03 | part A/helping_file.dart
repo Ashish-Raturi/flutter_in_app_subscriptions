@@ -38,7 +38,6 @@ class _SubscriptinPageState extends State<SubscriptinPage> {
   bool _loading = true;
 
   //--------copy 02-----------//
-  PurchaseDetails? _activeSubscriptionPurchasesDetails;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
   bool _purchasePending = false;
   //--------copy 02 end-----------//
