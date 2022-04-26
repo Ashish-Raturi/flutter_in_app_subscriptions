@@ -148,7 +148,7 @@ class _SubscriptinPageState extends State<SubscriptinPage> {
     late PurchaseParam purchaseParam;
 
     if (Platform.isAndroid) {
-      //updated oldSubscription details for upgrading and downgrading subscription
+      //update oldSubscription details for upgrading and downgrading subscription
       GooglePlayPurchaseDetails? oldSubscription;
 
       purchaseParam = GooglePlayPurchaseParam(
