@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:pim/color.dart';
 import 'package:pim/service/subscription_db_service.dart';
@@ -559,6 +560,18 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> verifyAndDeliverProduct(PurchaseDetails purchaseDetails) async {
     //verify
+    HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('verifyPurchase');
+    final res = await callable.call({
+      'source': Platform.isAndroid ? 'google_play' : 'app_store',
+      'productId': purchaseDetails.productID,
+      'uid': 'vt1g6YbzBkxblkyrXfzT',
+      'verificationData':
+          purchaseDetails.verificationData.serverVerificationData
+    });
+
+    print('Purchase verified : ${res.data}');
+
     //save purchase in db
     await SubscriptionDbService().saveSubcriptionsDetails(purchaseDetails);
     //update local variable
