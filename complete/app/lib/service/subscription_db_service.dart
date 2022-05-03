@@ -59,6 +59,32 @@ class SubscriptionDbService {
 
     return UserData(oldPdFromDb: oldPd, username: ds.get('username'));
   }
+
+  Future<bool> checkUserSubscriptionStatus() async {
+    String userUid = 'vt1g6YbzBkxblkyrXfzT';
+
+    // Create a reference to the Purchase Collection
+    var purchaseRef = _firestore.collection("purchases");
+
+    // Create a query against the userid.
+    Query<Map<String, dynamic>> query =
+        purchaseRef.where("userId", isEqualTo: userUid);
+
+    QuerySnapshot querySnapshot = await query.get();
+
+    bool subStatus = false;
+    for (QueryDocumentSnapshot ds in querySnapshot.docs) {
+      String status = ds.get('status');
+      // "ACTIVE", // Payment received
+      // "ACTIVE", // Free trial
+      // "EXPIRED", // Expired or cancelled
+      if (status == "ACTIVE") {
+        subStatus = true;
+      }
+    }
+
+    return subStatus;
+  }
 }
 
 class UserData {

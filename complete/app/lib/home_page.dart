@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:pim/color.dart';
 import 'package:pim/service/subscription_db_service.dart';
@@ -144,6 +145,19 @@ class _HomepageState extends State<Homepage> {
     return null;
   }
 
+  checkForSubStatus(String productId) async {
+    bool subStatus =
+        await SubscriptionDbService().checkUserSubscriptionStatus();
+    if (subStatus == true) {
+      activeSubId = productId;
+    } else {
+      userData.oldPdFromDb = null;
+    }
+    Future.delayed(Duration(seconds: 1), () {
+      setState(() {});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<UserData>(
@@ -169,7 +183,8 @@ class _HomepageState extends State<Homepage> {
 
           userData = snapshot.data!;
           if (userData.oldPdFromDb != null) {
-            activeSubId = userData.oldPdFromDb!.productID;
+            checkForSubStatus(userData.oldPdFromDb!.productID);
+            // activeSubId = userData.oldPdFromDb!.productID;
           }
           return SafeArea(
             child: Scaffold(
@@ -228,6 +243,8 @@ class _HomepageState extends State<Homepage> {
                                     if (!_notFoundIds.contains(sub1Id) &&
                                         _isAvailable)
                                       _buildMonthlySubTile(),
+                                    if (_notFoundIds.contains(sub1Id))
+                                      Text('Product $sub1Id not found'),
                                     const SizedBox(
                                       height: 20,
                                     ),
@@ -237,6 +254,8 @@ class _HomepageState extends State<Homepage> {
                                     if (!_notFoundIds.contains(sub2Id) &&
                                         _isAvailable)
                                       _buildYearlySubTile(),
+                                    if (_notFoundIds.contains(sub2Id))
+                                      Text('Product $sub2Id not found'),
                                   ],
                                 ),
                               ),
@@ -470,7 +489,7 @@ class _HomepageState extends State<Homepage> {
         ));
   }
 
-  buySubscription(ProductDetails productDetails) {
+  buySubscription(ProductDetails productDetails) async {
     late PurchaseParam purchaseParam;
 
     if (Platform.isAndroid) {
@@ -495,6 +514,13 @@ class _HomepageState extends State<Homepage> {
     }
     //buying Subscription
     _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+    //(for ios error) Flutter: storekit_duplicate_product_object : https://stackoverflow.com/questions/67367861/flutter-storekit-duplicate-product-object-there-is-a-pending-transaction-for-t
+    var transactions = await SKPaymentQueueWrapper().transactions();
+    transactions.forEach(
+      (skPaymentTransactionWrapper) {
+        SKPaymentQueueWrapper().finishTransaction(skPaymentTransactionWrapper);
+      },
+    );
   }
 
   Widget _buildRestoreButton() {
@@ -559,13 +585,29 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> verifyAndDeliverProduct(PurchaseDetails purchaseDetails) async {
     //verify
-    //save purchase in db
-    await SubscriptionDbService().saveSubcriptionsDetails(purchaseDetails);
-    //update local variable
-    setState(() {
-      activeSubId = purchaseDetails.productID;
-      _purchasePending = false;
+    HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('verifyPurchase');
+    final res = await callable.call({
+      'source': Platform.isAndroid ? 'google_play' : 'app_store',
+      'productId': purchaseDetails.productID,
+      'uid': 'vt1g6YbzBkxblkyrXfzT',
+      'verificationData':
+          purchaseDetails.verificationData.serverVerificationData
     });
+
+    print('Purchase verified : ${res.data}');
+    if (res.data) {
+      //save purchase in db
+      await SubscriptionDbService().saveSubcriptionsDetails(purchaseDetails);
+      //update local variable
+      setState(() {
+        activeSubId = purchaseDetails.productID;
+        _purchasePending = false;
+      });
+      print('Product details saved');
+    } else {
+      // payment failed
+    }
   }
 
   void handleError(IAPError error) {
