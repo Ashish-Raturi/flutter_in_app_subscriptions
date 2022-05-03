@@ -228,6 +228,8 @@ class _HomepageState extends State<Homepage> {
                                     if (!_notFoundIds.contains(sub1Id) &&
                                         _isAvailable)
                                       _buildMonthlySubTile(),
+                                    if (_notFoundIds.contains(sub1Id))
+                                      Text('Product $sub1Id not found'),
                                     const SizedBox(
                                       height: 20,
                                     ),
@@ -237,6 +239,8 @@ class _HomepageState extends State<Homepage> {
                                     if (!_notFoundIds.contains(sub2Id) &&
                                         _isAvailable)
                                       _buildYearlySubTile(),
+                                    if (_notFoundIds.contains(sub2Id))
+                                      Text('Product $sub2Id not found'),
                                   ],
                                 ),
                               ),
@@ -470,7 +474,7 @@ class _HomepageState extends State<Homepage> {
         ));
   }
 
-  buySubscription(ProductDetails productDetails) {
+  buySubscription(ProductDetails productDetails) async {
     late PurchaseParam purchaseParam;
 
     if (Platform.isAndroid) {
@@ -495,6 +499,13 @@ class _HomepageState extends State<Homepage> {
     }
     //buying Subscription
     _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+    //(for ios error) Flutter: storekit_duplicate_product_object : https://stackoverflow.com/questions/67367861/flutter-storekit-duplicate-product-object-there-is-a-pending-transaction-for-t
+    var transactions = await SKPaymentQueueWrapper().transactions();
+    transactions.forEach(
+      (skPaymentTransactionWrapper) {
+        SKPaymentQueueWrapper().finishTransaction(skPaymentTransactionWrapper);
+      },
+    );
   }
 
   Widget _buildRestoreButton() {

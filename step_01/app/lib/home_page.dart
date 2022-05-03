@@ -206,6 +206,8 @@ class _HomepageState extends State<Homepage> {
                                     if (!_notFoundIds.contains(sub1Id) &&
                                         _isAvailable)
                                       _buildMonthlySubTile(),
+                                    if (_notFoundIds.contains(sub1Id))
+                                      Text('Product $sub1Id not found'),
                                     const SizedBox(
                                       height: 20,
                                     ),
@@ -215,6 +217,8 @@ class _HomepageState extends State<Homepage> {
                                     if (!_notFoundIds.contains(sub2Id) &&
                                         _isAvailable)
                                       _buildYearlySubTile(),
+                                    if (_notFoundIds.contains(sub2Id))
+                                      Text('Product $sub2Id not found'),
                                   ],
                                 ),
                               ),
@@ -241,9 +245,8 @@ class _HomepageState extends State<Homepage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                        // pd.title,
-                        'Product title',
+                    Text(pd.title,
+                        // 'Product title',
                         style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.white,
@@ -251,9 +254,8 @@ class _HomepageState extends State<Homepage> {
                     const SizedBox(
                       height: 5,
                     ),
-                    Text(
-                        // pd.price,
-                        'Price',
+                    Text(pd.price,
+                        // 'Price',
                         style: const TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.w500,
@@ -293,7 +295,7 @@ class _HomepageState extends State<Homepage> {
             Divider(),
             Align(
               alignment: Alignment.centerLeft,
-              child: Text('Description : product description',
+              child: Text('Description : ${pd.description}',
                   style: TextStyle(color: c3, fontSize: 16)),
             ),
             const SizedBox(
@@ -341,9 +343,8 @@ class _HomepageState extends State<Homepage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                        // pd.title,
-                        'Product title',
+                    Text(pd.title,
+                        // 'Product title',
                         style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Colors.white,
@@ -351,9 +352,8 @@ class _HomepageState extends State<Homepage> {
                     const SizedBox(
                       height: 5,
                     ),
-                    Text(
-                        // pd.price,
-                        'Price',
+                    Text(pd.price,
+                        // 'Price',
                         style: const TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.w500,
@@ -393,7 +393,7 @@ class _HomepageState extends State<Homepage> {
             Divider(),
             Align(
               alignment: Alignment.centerLeft,
-              child: Text('Description : product description',
+              child: Text('Description : ${pd.description}',
                   style: TextStyle(color: c3, fontSize: 16)),
             ),
             const SizedBox(

@@ -144,7 +144,7 @@ class _SubscriptinPageState extends State<SubscriptinPage> {
 
   //-------Copy 02-----------//
 
-  buySubscription(ProductDetails productDetails) {
+  buySubscription(ProductDetails productDetails) async {
     late PurchaseParam purchaseParam;
 
     if (Platform.isAndroid) {
@@ -168,6 +168,14 @@ class _SubscriptinPageState extends State<SubscriptinPage> {
     }
     //buying Subscription
     _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+
+    //(for ios error) Flutter: storekit_duplicate_product_object : https://stackoverflow.com/questions/67367861/flutter-storekit-duplicate-product-object-there-is-a-pending-transaction-for-t
+    var transactions = await SKPaymentQueueWrapper().transactions();
+    transactions.forEach(
+      (skPaymentTransactionWrapper) {
+        SKPaymentQueueWrapper().finishTransaction(skPaymentTransactionWrapper);
+      },
+    );
   }
 
   Widget _buildRestoreButton() {
@@ -194,15 +202,14 @@ class _SubscriptinPageState extends State<SubscriptinPage> {
     );
   }
 
-  Future<void> confirmPriceChange(
-      BuildContext context, String purchaseId) async {
+  Future<void> confirmPriceChange(BuildContext context, String sku) async {
     if (Platform.isAndroid) {
       final InAppPurchaseAndroidPlatformAddition androidAddition =
           _inAppPurchase
               .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
       final BillingResultWrapper priceChangeConfirmationResult =
           await androidAddition.launchPriceChangeConfirmationFlow(
-        sku: purchaseId,
+        sku: sku,
       );
       if (priceChangeConfirmationResult.responseCode == BillingResponse.ok) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
