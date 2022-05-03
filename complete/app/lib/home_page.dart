@@ -1,4 +1,3 @@
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:pim/color.dart';
 import 'package:pim/service/subscription_db_service.dart';
@@ -145,19 +144,6 @@ class _HomepageState extends State<Homepage> {
     return null;
   }
 
-  checkForSubStatus(String productId) async {
-    // bool subStatus =
-    //     await SubscriptionDbService().checkUserSubscriptionStatus();
-    // if (subStatus == true) {
-    // activeSubId = productId;
-    // } else {
-    //   userData.oldPdFromDb = null;
-    // }
-    // Future.delayed(Duration(seconds: 1), () {
-    //   setState(() {});
-    // });
-  }
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<UserData>(
@@ -183,8 +169,7 @@ class _HomepageState extends State<Homepage> {
 
           userData = snapshot.data!;
           if (userData.oldPdFromDb != null) {
-            checkForSubStatus(userData.oldPdFromDb!.productID);
-            // activeSubId = userData.oldPdFromDb!.productID;
+            activeSubId = userData.oldPdFromDb!.productID;
           }
           return SafeArea(
             child: Scaffold(
@@ -491,7 +476,7 @@ class _HomepageState extends State<Homepage> {
     if (Platform.isAndroid) {
       //update oldSubscription details for upgrading and downgrading subscription
       GooglePlayPurchaseDetails? oldSubscription;
-      // if (userData.oldPdFromDb != null) oldSubscription = userData.oldPdFromDb;
+      if (userData.oldPdFromDb != null) oldSubscription = userData.oldPdFromDb;
 
       purchaseParam = GooglePlayPurchaseParam(
           productDetails: productDetails,
@@ -574,29 +559,13 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> verifyAndDeliverProduct(PurchaseDetails purchaseDetails) async {
     //verify
-    // HttpsCallable callable =
-    //     FirebaseFunctions.instance.httpsCallable('verifyPurchase');
-    // final res = await callable.call({
-    //   'source': Platform.isAndroid ? 'google_play' : 'app_store',
-    //   'productId': purchaseDetails.productID,
-    //   'uid': 'vt1g6YbzBkxblkyrXfzT',
-    //   'verificationData':
-    //       purchaseDetails.verificationData.serverVerificationData
-    // });
-
-    // print('Purchase verified : ${res.data}');
-    // if (res.data) {
     //save purchase in db
-    // await SubscriptionDbService().saveSubcriptionsDetails(purchaseDetails);
+    await SubscriptionDbService().saveSubcriptionsDetails(purchaseDetails);
     //update local variable
     setState(() {
       activeSubId = purchaseDetails.productID;
       _purchasePending = false;
     });
-    print('Product details saved');
-    // } else {
-    //payment failed
-    // }
   }
 
   void handleError(IAPError error) {
